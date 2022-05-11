@@ -68,9 +68,14 @@ public class UserManager {
                 .build();
     }
 
-    public void delete(String id) {
-        userRepository.deleteById(id);
-        log.info("Deleted user id: " + id);
+    public User delete(String id) {
+        UserDocument user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw buildException(ERR_ACC_NOT_EXIST, "Can't find user with id: " + id, id);
+        }
+        userRepository.delete(user);
+        log.info("Deleted user: " + user);
+        return userConverter.toDto(user);
     }
 
     private UserDocument prepareUser(UserCreateInvoice invoice) {

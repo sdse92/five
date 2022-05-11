@@ -45,8 +45,8 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'MODERATOR')")
-    public void deleteUser(@PathVariable
+    public User deleteUser(@PathVariable
                             String id) {
-        userService.delete(id);
+        return userService.delete(id);
     }
 }

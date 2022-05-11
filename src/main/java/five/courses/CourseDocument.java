@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Set;
 
 @Document(collection = "course")
@@ -18,5 +19,6 @@ public class CourseDocument {
     private String description;
     private String courseAdministratorId;
     private Set<String> members;
+    private List<String> fileIds;
 
 }

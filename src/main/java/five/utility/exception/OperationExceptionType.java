@@ -18,5 +18,7 @@ public enum OperationExceptionType {
     ERR_NO_ROLES,
     ERR_MAX_UPLOAD_SIZE_EXCEEDED,
 //  Not allowed to do this
-    ERR_NOT_ALLOWED
+    ERR_NOT_ALLOWED,
+//  Course not exist
+    ERR_COURSE_NOT_EXIST
 }
