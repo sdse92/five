@@ -10,6 +10,7 @@ public class CourseUpdateInvoice {
 
     private String name;
     private String description;
+    private String filesDirectory;
     private String courseAdministratorId;
     private Set<String> members;
     private List<String> fileIds;

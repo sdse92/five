@@ -4,6 +4,8 @@ import five.utility.SearchResult;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/course")
 public class CourseController {
@@ -45,5 +47,12 @@ public class CourseController {
     public Course deleteCourse(@PathVariable
                                    String id) {
         return courseService.delete(id);
+    }
+
+    @GetMapping("/user/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'MODERATOR', 'USER')")
+    public List<Course> gerCoursesByUser(@PathVariable
+                                            String id) {
+        return courseService.getByUser(id);
     }
 }

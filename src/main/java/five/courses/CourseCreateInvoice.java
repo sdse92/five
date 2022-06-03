@@ -16,6 +16,7 @@ public class CourseCreateInvoice implements ValidationHelper {
 
     private String name;
     private String description;
+    private String filesDirectory;
     private String courseAdministratorId;
     private Set<String> members;
     private List<String> fileIds;

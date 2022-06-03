@@ -20,5 +20,15 @@ public enum OperationExceptionType {
 //  Not allowed to do this
     ERR_NOT_ALLOWED,
 //  Course not exist
-    ERR_COURSE_NOT_EXIST
+    ERR_COURSE_NOT_EXIST,
+//  File with this name exist
+    ERR_EXIST_FILENAME,
+//  File upload error
+    ERR_UPLOAD_FILE,
+//  Course files upload directory not exist
+    ERR_COURSE_UPLOAD_DIRECTORY,
+//  File descriptor not exist
+    ERR_FILE_DESCRIPTOR_NOT_EXIST,
+//  Can't encode url
+    ERR_URL_ENCODE
 }

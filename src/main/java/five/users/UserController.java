@@ -1,7 +1,9 @@
 package five.users;
 
 import five.utility.SearchResult;
+import five.utility.security.UserAuthentication;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,5 +50,12 @@ public class UserController {
     public User deleteUser(@PathVariable
                             String id) {
         return userService.delete(id);
+    }
+
+    @GetMapping("/current")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'MODERATOR', 'USER')")
+    public User gerCurrentUser() {
+        UserAuthentication userAuthentication = (UserAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        return userService.get(userAuthentication.getUserId());
     }
 }

@@ -1,5 +1,7 @@
 package five.courses;
 
+import five.users.User;
+import five.users.UserManager;
 import five.utility.SearchResult;
 import five.utility.exception.OperationException;
 import five.utility.exception.OperationExceptionBuilder;
@@ -7,6 +9,7 @@ import five.utility.exception.OperationExceptionType;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,11 +21,14 @@ public class CourseManager {
 
     private final CourseConverter courseConverter;
     private final CourseRepository courseRepository;
+    private final UserManager userManager;
 
     public CourseManager(CourseConverter courseConverter,
-                         CourseRepository courseRepository) {
+                         CourseRepository courseRepository,
+                         UserManager userManager) {
         this.courseConverter = courseConverter;
         this.courseRepository = courseRepository;
+        this.userManager = userManager;
     }
 
     public Course create(CourseCreateInvoice createInvoice) {
@@ -72,10 +78,25 @@ public class CourseManager {
         return courseConverter.toDto(course);
     }
 
+    public List<Course> getByUser(String userId) {
+        User user = userManager.get(userId);
+        List<Course> courses = new ArrayList<>();
+        if (user != null && user.getGroups() != null && !user.getGroups().isEmpty()) {
+            for ( String groupId: user.getGroups()) {
+                CourseDocument courseDocument = courseRepository.findById(groupId).orElse(null);
+                if (courseDocument != null) {
+                    courses.add(courseConverter.toDto(courseDocument));
+                }
+            }
+        }
+        return courses;
+    }
+
     private CourseDocument prepareNewCourse(CourseCreateInvoice invoice) {
         CourseDocument newCourse = new CourseDocument();
         newCourse.setName(invoice.getName());
         newCourse.setDescription(invoice.getDescription());
+        newCourse.setFilesDirectory(invoice.getFilesDirectory());
         newCourse.setCourseAdministratorId(invoice.getCourseAdministratorId());
         newCourse.setMembers(invoice.getMembers());
         newCourse.setFileIds(invoice.getFileIds());
@@ -89,7 +110,9 @@ public class CourseManager {
         if (invoice.getDescription() != null) {
             course.setDescription(invoice.getDescription());
         }
-
+        if (invoice.getFilesDirectory() != null) {
+            course.setFilesDirectory(invoice.getFilesDirectory());
+        }
         if (invoice.getCourseAdministratorId() != null) {
             course.setCourseAdministratorId(invoice.getCourseAdministratorId());
         }
