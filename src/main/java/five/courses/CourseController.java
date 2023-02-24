@@ -49,6 +49,13 @@ public class CourseController {
         return courseService.delete(id);
     }
 
+    @PostMapping("/filtered")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'MODERATOR', 'USER')")
+    public SearchResult<Course> gerCourseByFilter(@RequestBody
+                                    CourseSearchInvoice invoice) {
+        return courseService.retrieveByFilter(invoice);
+    }
+
     @GetMapping("/user/{id}")
     @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'MODERATOR', 'USER')")
     public List<Course> gerCoursesByUser(@PathVariable

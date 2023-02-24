@@ -1,4 +1,4 @@
-package five.files;
+package five.fileDescriptors;
 
 import lombok.Data;
 
@@ -10,6 +10,7 @@ public class FileDescriptor {
     private String id;
     private String name;
     private String fileType;
+    private String courseName;
     private String storeLocation;
     private String downloadUrl;
     private long size;

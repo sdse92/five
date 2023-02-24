@@ -7,6 +7,8 @@ import five.utility.exception.OperationException;
 import five.utility.exception.OperationExceptionBuilder;
 import five.utility.exception.OperationExceptionType;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,13 +24,16 @@ public class CourseManager {
     private final CourseConverter courseConverter;
     private final CourseRepository courseRepository;
     private final UserManager userManager;
+    private final MongoTemplate mongoTemplate;
 
     public CourseManager(CourseConverter courseConverter,
                          CourseRepository courseRepository,
-                         UserManager userManager) {
+                         UserManager userManager,
+                         MongoTemplate mongoTemplate) {
         this.courseConverter = courseConverter;
         this.courseRepository = courseRepository;
         this.userManager = userManager;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public Course create(CourseCreateInvoice createInvoice) {
@@ -90,6 +95,17 @@ public class CourseManager {
             }
         }
         return courses;
+    }
+
+    public SearchResult<Course> retrieveByFilter(CourseSearchInvoice invoice) {
+        PageRequest pageRequest = PageRequest.of(invoice.getPageIndex(), invoice.getPageSize());
+        List<Course> courses = courseRepository.retrieveByFilter(mongoTemplate, invoice, pageRequest)
+                .stream().map(courseConverter::toDto)
+                .collect(Collectors.toList());
+        return SearchResult.<Course>builder()
+                .items(courses)
+                .total((long) courses.size())
+                .build();
     }
 
     private CourseDocument prepareNewCourse(CourseCreateInvoice invoice) {

@@ -1,13 +1,16 @@
-package five.files;
+package five.fileDescriptors;
 
 import five.courses.CourseDocument;
 import five.courses.CourseRepository;
+import five.utility.SearchResult;
 import five.utility.exception.OperationException;
 import five.utility.exception.OperationExceptionBuilder;
 import five.utility.exception.OperationExceptionType;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -18,6 +21,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static five.utility.exception.OperationExceptionType.*;
 
@@ -28,11 +33,16 @@ public class FileManager {
     private final FileDescriptorConverter fileDescriptorConverter;
     private final FileDescriptorRepository fileDescriptorRepository;
     private final CourseRepository courseRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public FileManager(FileDescriptorConverter fileDescriptorConverter, FileDescriptorRepository fileDescriptorRepository, CourseRepository courseRepository) {
+    public FileManager(FileDescriptorConverter fileDescriptorConverter,
+                       FileDescriptorRepository fileDescriptorRepository,
+                       CourseRepository courseRepository,
+                       MongoTemplate mongoTemplate) {
         this.fileDescriptorConverter = fileDescriptorConverter;
         this.fileDescriptorRepository = fileDescriptorRepository;
         this.courseRepository = courseRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public FileDescriptor saveFile(MultipartFile file, String courseDescriptor) {
@@ -49,7 +59,7 @@ public class FileManager {
                     file.getOriginalFilename());
         }
 
-        FileDescriptorDocument uploadedObject = buildFileDescriptor(file, course.getFilesDirectory());
+        FileDescriptorDocument uploadedObject = buildFileDescriptor(file, course);
         uploadFile(file, uploadedFile);
         fileDescriptorRepository.save(uploadedObject);
         log.info("Object uploaded: " + uploadedObject);
@@ -73,14 +83,15 @@ public class FileManager {
         return resource;
     }
 
-    private FileDescriptorDocument buildFileDescriptor(MultipartFile file, String course) {
+    private FileDescriptorDocument buildFileDescriptor(MultipartFile file, CourseDocument course) {
         FileDescriptorDocument uploadedObject = new FileDescriptorDocument();
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/file/downloadFile/")
                 .toUriString();
         uploadedObject.setName(file.getOriginalFilename());
         uploadedObject.setFileType(file.getContentType());
-        uploadedObject.setStoreLocation(course + "/" + file.getOriginalFilename());
+        uploadedObject.setCourseName(course.getName());
+        uploadedObject.setStoreLocation(course.getFilesDirectory() + "/" + file.getOriginalFilename());
         try {
             uploadedObject.setDownloadUrl(String.valueOf(new URL(fileDownloadUri + file.getOriginalFilename())));
         } catch (MalformedURLException e) {
@@ -102,6 +113,17 @@ public class FileManager {
                     "Can't upload file " + file.getOriginalFilename(),
                     file.getOriginalFilename());
         }
+    }
+
+    public SearchResult<FileDescriptor> retrieveByFilter(FileDescriptorSearchInvoice invoice){
+        PageRequest pageRequest = PageRequest.of(invoice.getPageIndex(), invoice.getPageSize());
+        List<FileDescriptor> fileDescriptorItems = fileDescriptorRepository.retrieveByFilter(mongoTemplate, invoice, pageRequest)
+                .stream().map(fileDescriptorConverter::toDto)
+                .collect(Collectors.toList());
+        return SearchResult.<FileDescriptor>builder()
+                .items(fileDescriptorItems)
+                .total((long) fileDescriptorItems.size())
+                .build();
     }
 
     private void fileDescriptorNotFound(String fileName){

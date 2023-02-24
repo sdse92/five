@@ -1,6 +1,7 @@
-package five.files;
+package five.fileDescriptors;
 
 
+import five.utility.SearchResult;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -60,6 +61,12 @@ public class FileController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    @PostMapping("/filtered")
+    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR', 'MODERATOR', 'USER')")
+    public SearchResult<FileDescriptor> getDescriptorsByFilter(@RequestBody FileDescriptorSearchInvoice descriptorSearchInvoice) {
+        return fileManager.retrieveByFilter(descriptorSearchInvoice);
     }
 
 }
